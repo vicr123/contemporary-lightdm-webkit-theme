@@ -1,0 +1,51 @@
+::-webkit-scrollbar {
+	width: 5px;
+	height: 5px;
+	z-index: 99999999999999999999999999;
+}
+
+::-webkit-scrollbar:vertical {
+	float:right;
+	position: fixed;
+}
+
+::-webkit-scrollbar-track {
+	background-color: #F4F4F4;
+}
+
+::-webkit-scrollbar-thumb {
+	background-color: black;
+}
+
+::-webkit-scrollbar-thumb:active {
+	background-color: black;
+}
+
+button, input[type=button], input[type=submit], input[type=reset], ::-webkit-file-upload-button {
+	background-color: white;
+	border: 1px solid black;
+	color: black;
+}
+
+button:hover, input[type=button]:hover, input[type=submit]:hover, input[type=reset]:hover, ::-webkit-file-upload-button:hover {
+	background-color: #F4F4F4;
+}
+
+button:active, input[type=button]:active, input[type=submit]:active, input[type=reset]:active, ::-webkit-file-upload-button:active {
+	background-color: black;
+}
+
+button:disabled, input[type=button]:disabled, input[type=submit]:disabled, input[type=reset]:disabled, ::-webkit-file-upload-button:disabled {
+	color: InactiveCaptionText;
+    background-color: white;
+}
+
+
+*:focus {
+    outline: 0;
+}
+
+select {
+    /*-webkit-appearance: none;*/
+    
+}

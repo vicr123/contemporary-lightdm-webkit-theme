@@ -1,0 +1,611 @@
+<html>
+  <head>
+    <title></title>
+    <meta content="">
+    <script type="text/javascript" src="mock.js" tabindex="-1"></script>
+    <link rel="stylesheet" href="css.css" />
+    <script type="text/javascript">
+    
+
+      /*********************************************************************/
+      /*                Callbacks for lightdm-webkit-greeter               */
+      /*********************************************************************/
+
+
+      /*
+       * show_prompt callback.
+       */
+
+      function show_prompt(text, type)
+      {
+      
+      }
+
+      /*
+       * show_message callback.
+       */
+
+      function show_message(text, type)
+      {
+      
+      }
+
+      /*
+       * authentication_complete callback.
+       */
+
+      function authentication_complete()
+      {
+        if (lightdm.is_authenticated) {
+          //lightdm.start_session_sync(); // Start default session
+          lightdm.login(username, document.getElementById("session").value);
+        } else {
+          document.getElementById("nopass").style.visibility = "visible";
+          startLogin();
+          document.getElementById("leftCol").style.width = "50%";
+          document.getElementById("clockContainer").style.left = "0px";
+          document.getElementById("clickToUnlock").style.opacity = "0";
+        }
+      }
+
+      /*
+       * autologin_timer_expired callback.
+       */
+
+      function autologin_timer_expired(username)
+      {
+        /* Stub.  Does nothing. */
+      }
+      
+      var usersLoggedIn = 0;
+
+    </script>
+    <style>
+        body {
+            -webkit-user-select: none;
+            overflow: hidden;
+            font-family: 'Noto Sans', sans;
+            background-color: #00C800;
+            cursor: none;
+        }
+        
+        /*#backButtonContainer {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }*/
+        
+        #backButton {
+            border: 0px;
+        }
+        
+        #backButton:hover {
+            background-color: white;
+	}
+
+        #backButton:active {
+                background-color: white;
+        }
+    
+        #rightCol, #leftCol, #powerOffCol, #clockContainer, #backgroundCol {
+            position: absolute;
+            top: 0px;
+            height: 100%;
+            display: table;
+            text-align: center;
+        }
+        
+        #clockContainer {
+            left: 50%;
+            transition: left 0.5s;
+        }
+        
+        #leftCol {
+            left: 0%;
+            width: 100%;
+            
+            z-index: 9999;
+            transition: width 0.5s;
+        }
+        
+        #backgroundCol {
+            left: 0px;
+            width: 100%;
+            
+            background-image: url("background.png");
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            z-index: -9999;
+            -webkit-filter: brightness(50%);
+        }
+        
+        #rightCol, #powerOffCol {
+            left: 50%;
+            width: 50%;
+            transition: top 0.5s;
+        }
+        
+        #rightCol {
+            background-color: #FFF;
+        }
+        
+        #clickToUnlock {
+            transition: opacity 0.5s;
+        }
+        
+        #clockContainer {
+        
+        }
+        
+        #powerOffCol {
+            background-color: #A00;
+            top: 100%;
+            color: #FFF;
+            z-index: 7777;
+        }
+        
+        #clock {
+            color: #FFF;
+            -webkit-filter: brightness(200%);
+        }
+        
+        #clock, #logins, #powerOffContent {
+            display: table-cell;
+            vertical-align: middle;
+            padding-left: 50px;
+            text-align: left;
+        }
+        
+        #date {
+            font-size: 18px;
+            display: inline-block;
+        }
+        
+        #time {
+            font-size: 60px;
+        }
+        
+        #nopass {
+            color: #F00;
+            visibility: hidden;
+        }
+        
+        #operations {
+            position: absolute;
+            bottom: 0px;
+            left: 50%;
+            text-align: right;
+            width: 50%;
+            transition: top 0.5s, bottom 0.5s;
+            /*background-color: #007800;
+            color: #FFF;*/
+            z-index: 8888;
+        }
+        
+        #loginButton {
+            background: url(login.svg) no-repeat right;
+            padding-right: 16px;
+        }
+        
+        #offButton {
+            background: url(off.svg) no-repeat 2px;
+            padding-left: 18px;
+        }
+        
+        #rebootButton {
+            background: url(reboot.svg) no-repeat 2px;
+            padding-left: 18px;
+        }
+        
+        #suspendButton {
+            background: url(suspend.svg) no-repeat 2px;
+            padding-left: 18px;
+        }
+        
+        #hibernateButton {
+            background: url(hibernate.svg) no-repeat 2px;
+            padding-left: 18px;
+        }
+        
+        h1 {
+            font-size: 32px;
+        }
+        
+        select {
+            -webkit-appearance: none;
+            background-color: #FFF;
+            border: 1px solid black;
+            color: black;
+            background: url(arrowdown.svg) no-repeat right;
+            padding-right: 16px;
+            -webkit-border-radius: 0px;
+        }
+
+        select:hover {
+            background-color: #F4F4F4;
+        }
+
+        select:active {
+            background-color: black;
+            color: #FFF;
+        }
+    </style>
+  </head>
+  <body onclick="prepareUnlock();" onkeyup="prepareUnlock();">
+    <div id="leftCol" onclick="prepareUnlock();">
+        <div id="backgroundCol">&nbsp;</div>
+        <div id="clockContainer">
+            <div id="clock">
+                <p><span id="time">Time goes here</span></p>
+                <p><span id="date">Date goes here</span></p>
+                <p><span id="battery"></span></p>
+                <p><span id="clickToUnlock">Click anywhere to unlock.</span></p>
+            </div>
+        </div>
+    </div>
+    <div id="powerOffCol">
+        <div id="powerOffContent">
+            <h1 id="powerOffHeader">Power Off</h1>
+            <div>
+                <p>
+                    You're about to <span id="powerOffPhrase">power off</span> your PC. Are you sure? <span id="numberOfUsersLoggedIn"></span>
+                </p>
+                <p><button onclick="cancelPowerOff();">Cancel</button><button id="powerOffButton" onclick="doPowerOff();">Power Off</button></p>
+                <p>If you don't do anything, we'll <span id="powerOffPhraseSeconds">power off</span> for you in <span id="powerTime">30</span> seconds.</p>
+            </div>
+            </div>
+    </div>
+    <div id="rightCol">
+        <div id="logins">
+            <div id="backButtonContainer">
+                
+            </div>
+    
+            <h1><button id="backButton" onclick="goBack();"><img src="back.svg" width="24" height="24"/></button><span id="greeting">Hey there!</span></h1>
+            <div>
+                <p>
+                <form onsubmit="doLogin(); return false;">
+                    <!--<input type="text" id="uname" hint="Username"/>-->
+                    <p>
+                    <select id="uname" onchange="startLogin();">
+                            <script>
+                                lightdm.users.forEach(function (currentValue, index, array) {
+                                    document.write('<option value="' + lightdm.users[index].name + '">' + lightdm.users[index].display_name + '</option>');
+                                    if (lightdm.users[index].logged_in) {
+                                        usersLoggedIn++;
+                                    }
+                                });
+                            </script>
+                        </select>
+                        <input type="password" id="pword" hint="Password"/>
+                        <input type="submit" value="&rarr; Log in" id="loginButton"/>
+                    </p>
+                    <p id="sessionControls">
+                        <label for="session">Log in using </label>
+                        <select id="session" onchange="">
+                            <script>
+                                lightdm.sessions.forEach(function (currentValue, index, array) {
+                                    var selectedString = "";
+                                    if (lightdm.sessions[index].key == lightdm.default_session.key) {
+                                        selectedString = 'selected="selected"';
+                                    }
+                                    document.write('<option value="' + lightdm.sessions[index].key + '"' + selectedString + '>' + lightdm.sessions[index].name + '</option>');
+                                });
+                            </script>
+                        </select>
+                    </p>
+                </form>
+                </p>
+                <p id="nopass">
+                    That didn't work. Try re-entering your password.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div id="operations">
+        <span id="hostname">Hostname goes here</span>
+        <button id="offButton" onclick="showPowerOff('off');">Power Off</button>
+        <button id="rebootButton" onclick="showPowerOff('reboot');">Reboot</button>
+        <button id="suspendButton" onclick="showPowerOff('suspend');">Suspend</button>
+        <button id="hibernateButton" onclick="showPowerOff('hibernate');">Hibernate</button>
+    </div>
+    
+    <script>
+    
+    /*if (navigator.getBattery()) {
+    navigator.getBattery().then(function(battery) {
+        
+        battery.addEventListener('chargingchange', function(){
+            updateInfo();
+        });
+        battery.addEventListener('levelchange', function(){
+            updateInfo();
+        });
+        
+        function updateInfo() {
+            var text = battery.level * 100 + "%";
+            if (battery.charging) {
+                text = text + " and charging";
+            } else {
+                text = text + " battery remaining.";
+            }
+            
+            document.getElementById("battery").innerHTML = text;
+        }
+        
+        updateInfo();
+    });
+    }*/
+    
+    startTime();
+
+    function startTime(){
+        var date = new Date();
+    
+        var hour = date.getHours();
+        var minute = date.getMinutes();
+        var second = date.getSeconds();
+        var dayOfMonth = date.getDate();
+        var year = date.getFullYear();
+        var month;
+        var day;
+        switch (date.getMonth()) {
+            case 0:
+                month = "Janurary"
+                break;
+            case 1:
+                month = "Februrary"
+                break;
+            case 2:
+                month = "March"
+                break;
+            case 3:
+                month = "April"
+                break;
+            case 4:
+                month = "May"
+                break;
+            case 5:
+                month = "June"
+                break;
+            case 6:
+                month = "July"
+                break;
+            case 7:
+                month = "August"
+                break;
+            case 8:
+                month = "September"
+                break;
+            case 9:
+                month = "October"
+                break;
+            case 10:
+                month = "November"
+                break;
+            case 11:
+                month = "December"
+                break;
+        }
+        switch (date.getDay()) {
+            case 0:
+                day = "Sunday"
+                break;
+            case 1:
+                day = "Monday"
+                break;
+            case 2:
+                day = "Tuesday"
+                break;
+            case 3:
+                day = "Wednesday"
+                break;
+            case 4:
+                day = "Thursday"
+                break;
+            case 5:
+                day = "Friday"
+                break;
+            case 6:
+                day = "Saturday"
+                break;
+        }
+        
+        var suffix = "";
+    
+        //12-hour clock support :)
+        if(false){
+            if(hour > 12){
+                suffix = "p.m.";
+                hour = hour - 12;
+            }else{
+                suffix = "a.m.";
+            }
+        }
+    
+        //Add "0" before minutes, if minute is smaller than 10
+        if(minute < 10){
+            minute = "0" + minute;
+        }
+    
+        //Add "0" before seconds, if seconds is smaller than 10
+        if(second < 10){
+            second = "0" + second;
+        }
+    
+        //Update clock!
+        document.getElementById("time").innerHTML = hour + ":" + minute + ":" + second;
+        document.getElementById("date").innerHTML = day + ", " + dayOfMonth + " " + month + ", " + year;
+}
+
+setInterval(startTime, 1000);
+    </script>
+    
+    <script>
+    var powerOffType;
+    var powerTimeLeft = 31;
+    var interval;
+    
+    function powerTimeTick() {
+        powerTimeLeft--;
+        document.getElementById("powerTime").innerHTML = powerTimeLeft;
+        if (powerTimeLeft == 0) {
+            doPowerOff();
+        }
+    }
+    
+    function showPowerOff(type) {
+          powerOffType = type;
+          switch (type) {
+            case "off":
+                document.getElementById("powerOffPhrase").innerHTML = "power off";
+                document.getElementById("powerOffPhraseSeconds").innerHTML = "power off";
+                document.getElementById("powerOffHeader").innerHTML = "Power Off";
+                document.getElementById("powerOffButton").innerHTML = "Power Off";
+                document.getElementById("powerOffCol").style.backgroundColor = "#A00";
+                if (usersLoggedIn > 0) {
+                    document.getElementById("numberOfUsersLoggedIn").innerHTML = "<p>Don't forget, you still have " + usersLoggedIn + (usersLoggedIn == 1 ? " user" : " users") + " logged in to this PC now. Shutting down could cause them to lose their work.</p>";
+                }
+                break;
+            case "reboot":
+                document.getElementById("powerOffPhrase").innerHTML = "reboot";
+                document.getElementById("powerOffPhraseSeconds").innerHTML = "reboot";
+                document.getElementById("powerOffHeader").innerHTML = "Reboot";
+                document.getElementById("powerOffButton").innerHTML = "Reboot";
+                document.getElementById("powerOffCol").style.backgroundColor = "#A00";
+                if (usersLoggedIn > 0) {
+                    document.getElementById("numberOfUsersLoggedIn").innerHTML = "<p>Don't forget, you still have " + usersLoggedIn + (usersLoggedIn == 1 ? " user" : " users") + " logged in to this PC now. Rebooting could cause them to lose their work.</p>";
+                }
+                break;
+            case "suspend":
+                document.getElementById("powerOffPhrase").innerHTML = "suspend";
+                document.getElementById("powerOffPhraseSeconds").innerHTML = "suspend";
+                document.getElementById("powerOffHeader").innerHTML = "Suspend";
+                document.getElementById("powerOffButton").innerHTML = "Suspend";
+                document.getElementById("powerOffCol").style.backgroundColor = "#FF4600";
+                document.getElementById("numberOfUsersLoggedIn").innerHTML = "";
+                break;
+            case "hibernate":
+                document.getElementById("powerOffPhrase").innerHTML = "hibernate";
+                document.getElementById("powerOffPhraseSeconds").innerHTML = "hibernate";
+                document.getElementById("powerOffHeader").innerHTML = "Hibernate";
+                document.getElementById("powerOffButton").innerHTML = "Hibernate";
+                document.getElementById("powerOffCol").style.backgroundColor = "#FF4600";
+                document.getElementById("numberOfUsersLoggedIn").innerHTML = "";
+                break;
+          }
+          
+          //document.getElementById("rightCol").style.top = "-100%";
+          document.getElementById("powerOffCol").style.top = "0px";
+          document.getElementById("operations").style.bottom = "100%";
+          powerTimeTick();
+          interval = setInterval(powerTimeTick, 1000);
+    }
+    
+    function cancelPowerOff() {
+          //document.getElementById("rightCol").style.top = "0px";
+          document.getElementById("powerOffCol").style.top = "100%";
+          document.getElementById("operations").style.bottom = "0px";
+          clearInterval(interval);
+          powerTimeLeft = 31;
+    }
+    
+    function doPowerOff() {
+    cancelPowerOff();
+        switch (powerOffType) {
+            case "off":
+                lightdm.shutdown();
+                break;
+            case "reboot":
+                lightdm.restart();
+                break;
+            case "suspend":
+                lightdm.suspend();
+                break;
+            case "hibernate":
+                lightdm.hibernate();
+        }
+    }
+    
+    </script>
+    <script>
+        var username
+        var unlockPrepared = false;
+        var ignoreUnlock = false;
+        
+        function doProvideSecret() {
+            document.getElementById("leftCol").removeEventListener('webkitTransitionEnd', doProvideSecret, false);
+            var password = document.getElementById("pword").value;
+            //lightdm.respond(password);
+            lightdm.provide_secret(password);
+            
+        
+        }
+        function doLogin() {
+            document.getElementById("leftCol").style.width = "100%";
+            document.getElementById("clockContainer").style.left = "50%";
+            document.getElementById("nopass").style.visibility = "hidden";
+            document.getElementById("clickToUnlock").style.opacity = "1";
+            document.getElementById("clickToUnlock").innerHTML = "Logging in...";
+            
+            document.getElementById("leftCol").addEventListener('webkitTransitionEnd', doProvideSecret, false);
+     
+        }
+        
+        function startLogin() {
+            try {
+                lightdm.cancel_authentication();
+            } catch (e) {
+            }
+            username = document.getElementById("uname").value;
+            lightdm.start_authentication(username);
+            
+            document.getElementById("greeting").innerHTML = "Hey " + document.getElementById("uname").options[document.getElementById("uname").selectedIndex].innerHTML + "!";
+            
+            if(lightdm.users[document.getElementById("uname").selectedIndex].logged_in){
+                document.getElementById("loginButton").value = "Unlock";
+                document.getElementById("sessionControls").style.display = "none";
+            }else{
+                document.getElementById("loginButton").value = "Log In";
+                document.getElementById("sessionControls").style.display = "initial";
+            }
+        }
+        
+        function prepareUnlock() {
+            if (ignoreUnlock) {
+                ignoreUnlock = false;
+            } else {
+                if (!unlockPrepared) {
+                    document.getElementById("leftCol").style.width = "50%";
+                    document.getElementById("clockContainer").style.left = "0px";
+                    document.getElementById("clickToUnlock").style.opacity = "0";
+                    document.getElementById("pword").focus();
+                    document.body.style.cursor = 'default';
+                    unlockPrepared = true;
+                }
+            }
+        }
+        
+        function goBack() {
+            if (unlockPrepared) {
+                document.getElementById("leftCol").style.width = "100%";
+                document.getElementById("clockContainer").style.left = "50%";
+                document.getElementById("clickToUnlock").style.opacity = "1";
+                document.body.style.cursor = 'none';
+                unlockPrepared = false;
+                ignoreUnlock = true;
+            }
+        }
+        
+        startLogin();
+        document.getElementById("hostname").innerHTML = lightdm.hostname;
+        if (!lightdm.can_shutdown) {document.getElementById("offButton").style.display = "none";}
+        if (!lightdm.can_restart) {document.getElementById("rebootButton").style.display = "none";}
+        if (!lightdm.can_suspend) {document.getElementById("suspendButton").style.display = "none";}
+        if (!lightdm.can_hibernate) {document.getElementById("hibernateButton").style.display = "none";}
+        if (lightdm.sessions.length == 1) {document.getElementById("sessionControls").style.display = "none";}
+    </script>
+  </body>
+</html>
